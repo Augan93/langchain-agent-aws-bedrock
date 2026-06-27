@@ -3,9 +3,10 @@ import subprocess
 import boto3
 import wikipediaapi
 from langchain_core.tools import Tool
-
+from langchain_community.tools import DuckDuckGoSearchRun
 
 # Tool 1: Wikipedia search
+
 
 def search_wikipedia(query: str) -> str:
     """Search Wikipedia and return a summary."""
@@ -100,6 +101,37 @@ python_tool = Tool(
     ),
 )
 
+# Tool 4: DuckDuckGo search
+_ddg = DuckDuckGoSearchRun()
+
+
+def search_web(query: str) -> str:
+    """Search the web via DuckDuckGo and return top results."""
+
+    try:
+        result = _ddg.run(query)
+        return result[:2000] + ("..." if len(result) > 2000 else "")
+    except Exception as e:
+        return f"Web search failed: {str(e)}"
+
+
+duckduckgo_tool = Tool(
+    name="web_search",
+    func=search_web,
+    description=(
+        "Search the web for current information, news, prices, or recent events. "
+        "Input: a search query string (e.g. 'Python 3.13 release date'). "
+        "Use for: anything that changes over time, current events, prices, "
+        "recent tech releases. Prefer wikipedia_search for stable factual topics."
+    ),
+)
+
+
 # Export
 
-tools = [wikipedia_tool, s3_tool, python_tool]
+tools = [
+    wikipedia_tool,
+    # s3_tool,
+    duckduckgo_tool,
+    python_tool,
+]
